@@ -31,7 +31,9 @@ export default class Select {
 
         this.labelElement.innerText = newSelectedOption.label
         this.optionsCustomElement.querySelector(`[data-value="${prevSelectedOption.value}"]`).classList.remove("selected")
-        this.optionsCustomElement.querySelector(`[data-value="${newSelectedOption.value}"]`).classList.add("selected")
+        const newCustomElement = this.optionsCustomElement.querySelector(`[data-value="${newSelectedOption.value}"]`)
+        newCustomElement.classList.add("selected")
+        newCustomElement.scrollIntoView({ block: "nearest" })
     }
 }
 
@@ -68,6 +70,8 @@ function setupCustomElement(select) {
         select.optionsCustomElement.classList.remove('show')
     })
 
+    let debounceTimeout
+    let searchTerm = ""
     select.customElement.addEventListener('keydown', e => {
         switch (e.code) {
             case "Space":
@@ -89,6 +93,18 @@ function setupCustomElement(select) {
             case "Escape":
                 select.optionsCustomElement.classList.remove("show")
                 break
+            default:
+                clearTimeout(debounceTimeout)
+                searchTerm += e.key
+                debounceTimeout = setTimeout(() => {
+                    searchTerm = ""
+                }, 500)
+                const searchedOption = select.options.find(option => {
+                    return option.label.toLowerCase().startsWith(searchTerm)
+                })
+                if (searchedOption) {
+                    select.selectValue(searchedOption.value)
+                }
         }
     })
 }
